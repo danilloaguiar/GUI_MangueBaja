@@ -11,9 +11,8 @@ serial_ports = ['/dev/ttyUSB0', '/dev/ttyUSB1', '/dev/ttyACM0', '/dev/ttyACM1']
 SIZE = 8
 FORMAT = '<LBHB'
 
-pckt = []
-value1 = deque(100*[0], 100)
-time = deque(100*[0], 100)
+value1 = deque(20*[0], 20)
+time = deque(20*[0], 20)
 
 class Receiver(threading.Thread):
     def __init__(self, name):
@@ -49,11 +48,8 @@ class Receiver(threading.Thread):
             #print(f'trying, {c}')
         msg = self.com.read(SIZE)
         #print(msg)
-        pckt = unpack(FORMAT, msg)
-        print(pckt)
-        #self.updateData()
-
-    def updateData(self):
+        pckt = list(unpack(FORMAT, msg))
+        #print(pckt)
         value1.append(pckt[2])
         time.append(pckt[0])
         print(value1, time)
@@ -64,21 +60,26 @@ class Receiver(threading.Thread):
 
 
 
-class grafs():
-    def __init__(self, car):
-        self.rpm_plt = plt.subplot2grid((2, 2), (0, 0))
-        self.speed_plt = plt.subplot2grid((2, 2), (0, 1))
-        self.imu_plt = plt.subplot2grid((2, 2), (1, 0), colspan=2)
-    def update(self, msg):
-        print("ola")
-
 
 if __name__ == "__main__":
     box = Receiver(name = 'serial_port')
     box.start()
-    plt.title('TELEMETRY SIGNAL') 
 
-    
+    while 1:
+        plt.title('TELEMETRY SIGNAL')  
+        #plt.axis((i-10,i+1,0,1))
+        plt.plot(time, value1, marker="h", color='k')
+        #plt.set_xlim(-10, 0)
+        #plt.set_ylim(0, 1000)
+        plt.xlabel("tempo")
+        plt.ylabel("amplitude")
+        plt.xlim(-10 + time[-1], time[-1])
+        plt.ylim(100, 1000)
+        plt.grid(True)
+        plt.pause(0.1)
+
+
+
 
 
 

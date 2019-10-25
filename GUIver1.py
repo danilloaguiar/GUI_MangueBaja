@@ -64,7 +64,7 @@ r2 = []
 s2 = []
 r3 = []
 s3 = []
-plt.title('TELEMETRY SIGNAL')  
+
 while 1:
     graf1()
     graf2()
