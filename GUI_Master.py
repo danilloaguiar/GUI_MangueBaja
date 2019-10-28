@@ -6,6 +6,9 @@ import threading
 import serial
 import time
 import pandas as pd
+from numpy.random import randn
+from numpy.fft import rfft
+from scipy import signal
 
 ID = 11
 serial_ports = ['/dev/ttyUSB0', '/dev/ttyUSB1', '/dev/ttyACM0', '/dev/ttyACM1']
@@ -20,7 +23,9 @@ rpm = deque(200*[0], 200)
 speed = deque(200*[0], 200)
 temp = deque(200*[0], 200)
 car = deque(200*[''], 200)
+eixo = deque(200*[0], 200)
 
+b, a = signal.butter(1, 0.1, analog=False)
 
 
 time_save = []
@@ -69,21 +74,21 @@ class Receiver(threading.Thread):
         msg = self.com.read(SIZE)
         #print(msg)
         pckt = list(unpack(FORMAT, msg))
-        print(pckt)
-        #print(pckt[10])
+        #print(pckt)
+        #print(pckt[9])
         time.append(pckt[11])
         accx.append(pckt[1])
         accy.append(pckt[2])
         accz.append(pckt[3])
         rpm.append(pckt[7])
         speed.append(pckt[8])
-        temp.append(pckt[9])
+        temp.append(pckt[10])
         if pckt[0] == 22:
             car.append("MB2")
         if pckt[0] == 11:
             car.append("MB1")       
 
-
+        #print(temp)
 
         time_save.append(pckt[11])
         accx_save.append(pckt[1])
@@ -116,7 +121,7 @@ if __name__ == "__main__":
     box = Receiver(name = 'serial_port')
     box.start()
 
-
+    cont = 0
     rpm_plt = plt.subplot2grid((3, 3), (1, 2), rowspan=2)
     speed_plt = plt.subplot2grid((3, 3), (0, 1), colspan=2)
     temp_plt = plt.subplot2grid((3, 3), (0, 0))
@@ -130,28 +135,37 @@ if __name__ == "__main__":
         imu_plt.clear()
         temp_plt.clear()
 
+        cont += 1
+        eixo.append(cont)
 
-        temp_plt.plot(time, temp, 'c-', marker="h")
+        sig_rpm = signal.filtfilt(b, a, rpm)
+        sig_speed = signal.filtfilt(b, a, speed)
+        sig_accx = signal.filtfilt(b, a, accx)
+        sig_accy = signal.filtfilt(b, a, accy)
+        sig_accz = signal.filtfilt(b, a, accz)
+
+        #print(temp)
+        temp_plt.plot(eixo, temp, 'c-', marker="h")
         temp_plt.set_title('Temperatura ' + car[-1])
-        temp_plt.set_xlim(-200 + time[-1], time[-1])
-        #temp_plt.set_ylim(0, 90)
+        temp_plt.set_xlim(-50 + cont, cont)
+        temp_plt.set_ylim(0, 90)
 
-        rpm_plt.plot(time, rpm, 'c-', marker="h")
+        rpm_plt.plot(eixo, sig_rpm, 'c-', marker="h")
         rpm_plt.set_title('Rotação do motor ' + car[-1])
-        rpm_plt.set_xlim(-200 + time[-1], time[-1])
-        #rpm_plt.set_ylim(0, 5000)
+        rpm_plt.set_xlim(-50 + cont, cont)
+        #rpm_plt.set_ylim(0, 20000)
 
-        speed_plt.plot(time, speed, 'k-', marker="h")
+        speed_plt.plot(eixo, sig_speed, 'k-', marker="h")
         speed_plt.set_title('Velocidade '+ car[-1])
-        speed_plt.set_xlim(-200 + time[-1], time[-1])
+        speed_plt.set_xlim(-50 + cont, cont)
         #speed_plt.set_ylim(0, 80)
         plt.grid(True)
 
-        imu_plt.plot(time, accx, 'b-', marker="h", label='Eixo X')
-        imu_plt.plot(time, accy, 'r-', marker="h", label='Eixo Y')
-        imu_plt.plot(time, accz, 'g-', marker="h", label='Eixo Z')
+        imu_plt.plot(eixo, sig_accx, 'b-', marker="h", label='Eixo X')
+        imu_plt.plot(eixo, sig_accy, 'r-', marker="h", label='Eixo Y')
+        imu_plt.plot(eixo, sig_accz, 'g-', marker="h", label='Eixo Z')
         imu_plt.set_title('Aceleração ' + car[-1])
-        imu_plt.set_xlim(-200 + time[-1], time[-1])
+        imu_plt.set_xlim(-200 + cont, cont)
         #imu_plt.set_ylim(-10, 10)
         imu_plt.legend()
 
