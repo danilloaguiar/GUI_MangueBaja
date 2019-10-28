@@ -10,18 +10,27 @@ import pandas as pd
 ID = 11
 serial_ports = ['/dev/ttyUSB0', '/dev/ttyUSB1', '/dev/ttyACM0', '/dev/ttyACM1']
 SIZE = 24
-FORMAT = '<LBHHHHHHHHBBB'
+FORMAT = '<BHHHHHHHHBBLB'
 
-time = deque(20*[0], 20)
-accx = deque(20*[0], 20)
-accy = deque(20*[0], 20)
-accz = deque(20*[0], 20)
-rpm = deque(20*[0], 20)
-speed = deque(20*[0], 20)
-temp = deque(20*[0], 20)
-car = deque(20*[0], 20)
+time = deque(200*[0], 200)
+accx = deque(200*[0], 200)
+accy = deque(200*[0], 200)
+accz = deque(200*[0], 200)
+rpm = deque(200*[0], 200)
+speed = deque(200*[0], 200)
+temp = deque(200*[0], 200)
+car = deque(200*[''], 200)
 
 
+
+time_save = []
+accx_save = []
+accy_save = []
+accz_save = []
+rpm_save = []
+speed_save = []
+temp_save = []
+car_save = []
 
 
 
@@ -60,20 +69,46 @@ class Receiver(threading.Thread):
         msg = self.com.read(SIZE)
         #print(msg)
         pckt = list(unpack(FORMAT, msg))
-        #print(pckt)
-        time.append(pckt[0])
-        accx.append(pckt[2])
-        accy.append(pckt[3])
-        accz.append(pckt[4])
-        rpm.append(pckt[8])
-        speed.append(pckt[9])
-        temp.append(pckt[10])
-        #print(pckt[1])
-        if pckt[1] == 22:
+        print(pckt)
+        #print(pckt[10])
+        time.append(pckt[11])
+        accx.append(pckt[1])
+        accy.append(pckt[2])
+        accz.append(pckt[3])
+        rpm.append(pckt[7])
+        speed.append(pckt[8])
+        temp.append(pckt[9])
+        if pckt[0] == 22:
             car.append("MB2")
-        if pckt[1] == 11:
+        if pckt[0] == 11:
             car.append("MB1")       
 
+
+
+        time_save.append(pckt[11])
+        accx_save.append(pckt[1])
+        accy_save.append(pckt[2])
+        accz_save.append(pckt[3])
+        rpm_save.append(pckt[7])
+        speed_save.append(pckt[8])
+        temp_save.append(pckt[0])
+        car_save.append(pckt[0]) 
+
+        #print(accx_save)  
+            
+    
+        data = {
+        'Tempo': time_save,
+        'Carro': car_save,
+        'Aceleração X': accx_save,
+        'Aceleração Y': accy_save,
+        'Aceleração Z': accz_save, 
+        'RPM': rpm_save,
+        'Velocidade': speed_save,
+        'Temperatura': temp_save
+        }      
+        csv = pd.DataFrame(data, columns=['Tempo','Carro', 'Aceleração X', 'Aceleração Y', 'Aceleração Z', 'RPM', 'Velocidade', 'Temperatura'])
+        csv.to_csv('dados_telemetria.csv')
 
         
 
@@ -98,26 +133,26 @@ if __name__ == "__main__":
 
         temp_plt.plot(time, temp, 'c-', marker="h")
         temp_plt.set_title('Temperatura ' + car[-1])
-        temp_plt.set_xlim(-20 + time[-1], time[-1])
-        temp_plt.set_ylim(0, 90)
+        temp_plt.set_xlim(-200 + time[-1], time[-1])
+        #temp_plt.set_ylim(0, 90)
 
         rpm_plt.plot(time, rpm, 'c-', marker="h")
         rpm_plt.set_title('Rotação do motor ' + car[-1])
-        rpm_plt.set_xlim(-20 + time[-1], time[-1])
-        rpm_plt.set_ylim(0, 5000)
+        rpm_plt.set_xlim(-200 + time[-1], time[-1])
+        #rpm_plt.set_ylim(0, 5000)
 
         speed_plt.plot(time, speed, 'k-', marker="h")
         speed_plt.set_title('Velocidade '+ car[-1])
-        speed_plt.set_xlim(-20 + time[-1], time[-1])
-        speed_plt.set_ylim(0, 80)
+        speed_plt.set_xlim(-200 + time[-1], time[-1])
+        #speed_plt.set_ylim(0, 80)
         plt.grid(True)
 
         imu_plt.plot(time, accx, 'b-', marker="h", label='Eixo X')
         imu_plt.plot(time, accy, 'r-', marker="h", label='Eixo Y')
         imu_plt.plot(time, accz, 'g-', marker="h", label='Eixo Z')
         imu_plt.set_title('Aceleração ' + car[-1])
-        imu_plt.set_xlim(-20 + time[-1], time[-1])
-        imu_plt.set_ylim(-10, 10)
+        imu_plt.set_xlim(-200 + time[-1], time[-1])
+        #imu_plt.set_ylim(-10, 10)
         imu_plt.legend()
 
      
