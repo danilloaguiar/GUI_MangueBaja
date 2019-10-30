@@ -12,8 +12,8 @@ from scipy import signal
 
 ID = 11
 serial_ports = ['/dev/ttyUSB0', '/dev/ttyUSB1', '/dev/ttyACM0', '/dev/ttyACM1']
-SIZE = 24
-FORMAT = '<BHHHHHHHHBBLB'
+SIZE = 60
+FORMAT = '<BHHHHHHHHHHHHHHHHHHHHHHHHHHBBLB'
 
 time = deque(200*[0], 200)
 accx = deque(200*[0], 200)
@@ -75,29 +75,45 @@ class Receiver(threading.Thread):
         #print(msg)
         pckt = list(unpack(FORMAT, msg))
         #print(pckt)
-        #print(pckt[9])
-        time.append(pckt[11])
-        accx.append(pckt[1])
-        accy.append(pckt[2])
-        accz.append(pckt[3])
-        rpm.append(pckt[7])
-        speed.append(pckt[8])
-        temp.append(pckt[10])
+        #print((pckt[25]/65535)*5000)
         if pckt[0] == 22:
             car.append("MB2")
+            accx.append(pckt[19]*0.061/1000)
+            accy.append(pckt[20]*0.061/1000)
+            accz.append(pckt[21]*0.061/1000)
+            rpm.append((pckt[25]/65535)*5000)
+            #print((pckt[25]/65535)*5000)
+            speed.append((pckt[26]/65535)*60)
+            temp.append(pckt[27])
+            time.append(pckt[29])
+            car_save.append(pckt[0])
+            accx_save.append(pckt[19]*0.061/1000)
+            accy_save.append(pckt[20]*0.061/1000)
+            accz_save.append(pckt[21]*0.061/1000)
+            rpm_save.append(pckt[25]/65535)*5000)
+            speed_save.append(pckt[26])
+            temp_save.append(pckt[27])
+            time_save.append(pckt[29])
         if pckt[0] == 11:
-            car.append("MB1")       
+            car.append("MB1")
+            accx.append(pckt[19]*0.061/1000)
+            accy.append(pckt[20]*0.061/1000)
+            accz.append(pckt[21]*0.061/1000)
+            rpm.append((pckt[25]/65535)*5000)
+            speed.append((pckt[26]/65535)*60)
+            temp.append(pckt[27])
+            time.append(pckt[29])
+            car_save.append(pckt[0])
+            accx_save.append(pckt[19]*0.061/1000)
+            accy_save.append(pckt[20]*0.061/1000)
+            accz_save.append(pckt[21]*0.061/1000)
+            rpm_save.append(pckt[25]/65535)*5000)
+            speed_save.append(pckt[26]/65535)*60)
+            temp_save.append(pckt[27])
+            time_save.append(pckt[29])
 
         #print(temp)
 
-        time_save.append(pckt[11])
-        accx_save.append(pckt[1])
-        accy_save.append(pckt[2])
-        accz_save.append(pckt[3])
-        rpm_save.append(pckt[7])
-        speed_save.append(pckt[8])
-        temp_save.append(pckt[0])
-        car_save.append(pckt[0]) 
 
         #print(accx_save)  
             
@@ -153,12 +169,12 @@ if __name__ == "__main__":
         rpm_plt.plot(eixo, sig_rpm, 'c-', marker="h")
         rpm_plt.set_title('Rotação do motor ' + car[-1])
         rpm_plt.set_xlim(-50 + cont, cont)
-        #rpm_plt.set_ylim(0, 20000)
+        rpm_plt.set_ylim(0, 6000)
 
         speed_plt.plot(eixo, sig_speed, 'k-', marker="h")
         speed_plt.set_title('Velocidade '+ car[-1])
         speed_plt.set_xlim(-50 + cont, cont)
-        #speed_plt.set_ylim(0, 80)
+        speed_plt.set_ylim(0, 80)
         plt.grid(True)
 
         imu_plt.plot(eixo, sig_accx, 'b-', marker="h", label='Eixo X')
@@ -166,10 +182,11 @@ if __name__ == "__main__":
         imu_plt.plot(eixo, sig_accz, 'g-', marker="h", label='Eixo Z')
         imu_plt.set_title('Aceleração ' + car[-1])
         imu_plt.set_xlim(-200 + cont, cont)
-        #imu_plt.set_ylim(-10, 10)
+        imu_plt.set_ylim(-4,4)
         imu_plt.legend()
 
      
   
 
-        plt.pause(0.001)
+        plt.pause(0.05)
+    
