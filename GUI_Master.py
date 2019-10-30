@@ -90,8 +90,8 @@ class Receiver(threading.Thread):
             accx_save.append(pckt[19]*0.061/1000)
             accy_save.append(pckt[20]*0.061/1000)
             accz_save.append(pckt[21]*0.061/1000)
-            rpm_save.append(pckt[25]/65535)*5000)
-            speed_save.append(pckt[26])
+            rpm_save.append((pckt[25]/65535)*5000)
+            speed_save.append((pckt[26]/65535)*60)
             temp_save.append(pckt[27])
             time_save.append(pckt[29])
         if pckt[0] == 11:
@@ -107,8 +107,8 @@ class Receiver(threading.Thread):
             accx_save.append(pckt[19]*0.061/1000)
             accy_save.append(pckt[20]*0.061/1000)
             accz_save.append(pckt[21]*0.061/1000)
-            rpm_save.append(pckt[25]/65535)*5000)
-            speed_save.append(pckt[26]/65535)*60)
+            rpm_save.append((pckt[25]/65535)*5000)
+            speed_save.append((pckt[26]/65535)*60)
             temp_save.append(pckt[27])
             time_save.append(pckt[29])
 
